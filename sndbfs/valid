@@ -1,0 +1,103 @@
+#! /bin/bash
+
+# This library contains all the functions that deal with validation.
+
+function chkBufrsiz()
+{
+
+	# Checks buffer size (argument length) and ensures that it doesn't exceed 1 million character.
+
+	arg="$1"
+	[[ -z "$1" ]] || [[ -n "$2" ]] && return 255
+
+	bufrsiz=$((1024*1024))
+	[[ `echo "$arg" | wc -m` -gt "$bufrsiz" ]] && return 5
+	return 0
+
+}
+
+function chkUpass()
+{
+
+	# Validates user's ecnrypted password for authentication.
+
+	uid="$1"
+	pass="$2"
+	dbpath="$3"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 255
+	[[ ! -d "$dbpath/ids/$uid" ]] && return 2
+
+	[[ "$pass" != "`cat $dbpath/ids/$uid/$uid | awk -F 'password=' '{print $2}' | awk -F ';;' '{print $1}'`" ]] && return 6
+	return 0
+
+}
+
+function chkUsrauth()
+{
+
+	# Checks if user is allowed to authenticate (not blocked).
+
+	uid="$1"
+	[[ -z "$1" ]] || [[ -n "$2" ]] && return 255
+
+	[[ -e "$dbpath/ids/$uid/blocked" ]] && return 9
+	return 0
+}
+
+function chkFilperm()
+{
+
+	# Checks files and directories for permissions where the first argument is file name and the second is the permission level (1 for execution 2 for write and 4 for read).
+
+	filepath="$1"
+	permlvl="$2"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 255
+	[[ ! -e "$filepath" ]] && return 4
+
+	if [[ "$permlvl" == '1' ]]
+	then
+		[[ ! -x "$filepath" ]] && return 7
+        elif [[ "$permlvl" == '2' ]]
+	then
+		[[ ! -w "$filepath" ]] && return 7
+        elif [[ "$permlvl" == '4' ]]
+	then
+		[[ ! -r "$filepath" ]] && return 7
+	else
+		return 8
+	fi
+	return 0
+
+}
+function chkBdate()
+{
+	# Validates the user's birth of date and ensure that it is in the range allowed by the age limit configuration file.
+
+	dob="$1"
+	mob="$2"
+	yob="$3"
+	confile="$4"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$4" ]] || [[ -z "$4" ]] || [[ -n "$5" ]] && return 255
+	maxage=`cat "$confile" | grep MaxAge | awk -F '=' '{print $2}' | tr -d '"'`
+	minage=`cat "$confile" | grep MinAge | awk -F '=' '{print $2}' | tr -d '"'`
+	year=`date +%Y`
+	ydiff=$((year-yob)) 2> /dev/null
+	[[ -z `echo "$ydiff" | grep [0-9]*` ]] && return 8 
+	[[ "$ydiff" -lt "$minage" ]] || [[ "$ydiff" -gt "$maxage" ]] || [[ $mob -lt "0" ]] || [[ $mob -gt "12" ]] || [[ $dob -lt "0" ]] || [[ $dob -gt "30" ]] && return 8
+	return 0
+}
+function chkDict()
+{
+
+	# Validates the values of parameters that are supposed to be pre-determined by a dictionary file. Originally intended to validate the existance of the values parsed
+	# to some information library functions including : setRlgion, setRlation, setGender and setRank.
+
+	parm="$1"
+	dict="$2"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 255
+	[[ ! -f "$2" ]] && return 4
+
+	[[ -z `cat "$dict" 2> /dev/null | grep -w "$parm="` ]] && return 10
+	return 0
+
+}

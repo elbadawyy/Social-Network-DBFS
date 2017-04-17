@@ -1,0 +1,101 @@
+#! /bin/bash
+function gnrtAccPerm()
+{
+	dbpath="$1"
+	uid="$2"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 255
+	[[ -d "$dbpath/ids/$uid" ]] || return 4
+	echo "messagePermission=" > "$dbpath/ids/$uid/perm"
+	echo "addFriendPermission=" >> "$dbpath/ids/$uid/perm"
+	echo "searchEnginePermission=" >> "$dbpath/ids/$uid/perm"
+	return 0
+}
+function sndMsgAccPerm()
+{
+	dbpath="$1"
+	uid="$2"
+	msgPerm="$3" 		#ALL or NONE
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 255
+	[[ -d "$dbpath/ids/$uid" ]] || return 4
+	[[ "$msgPerm" == "ALL" ]] || [[ "$msgPerm" == "NONE" ]] || return 8
+	sed -i "s/messagePermission=[[:print:]]*/messagePermission=$msgPerm/" "$dbpath/ids/$uid/perm"
+	return 0
+}
+function addAddFrndAccPerm()
+{
+	dbpath="$1"
+	uid="$2"
+	addFrndPerm="$3" 		#ALL or NONE
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 255
+	[[ -d "$dbpath/ids/$uid" ]] || return 4
+	[[ "$addFrndPerm" == "ALL" ]] || [[ "$addFrndPerm" == "NONE" ]] || return 8
+	sed -i "s/addFriendPermission=[[:print:]]*/addFriendPermission=$addFrndPerm/" "$dbpath/ids/$uid/perm"
+	return 0
+}
+function addsrchEngnAccPerm()
+{
+	dbpath="$1"
+	uid="$2"
+	srchPerm="$3" 		#ALL or NONE
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 255
+	[[ -d $dbpath/ids/$uid ]] || return 4
+	[[ "$srchPerm" == "ON" ]] || [[ "$srchPerm" == "OFF" ]] || return 8
+	sed -i "s/searchEnginePermission=[[:print:]]*/searchEnginePermission=$srchPerm/" "$dbpath/ids/$uid/perm"
+	return 0
+}
+
+function gnrtPostPerm()
+{
+	dbpath="$1"
+	ownerUid="$2" 		#the wall owner
+	postUid="$3"		#the poster
+	postid="$4"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -n "$5" ]] && return 255
+	[[ -d "$dbpath/ids/$ownerUid" ]] && [[ -d "$dbpath/ids/$postUid" ]] || return 4
+	echo "see=" > "$dbpath/posts/$ownerUid/$postUid/$postid/perm"
+	echo "comment=" >> "$dbpath/posts/$ownerUid/$postUid/$postid/perm"
+	echo "blackList=" >> "$dbpath/posts/$ownerUid/$postUid/$postid/perm"
+	return 0
+}
+
+function addSeePostPerm()
+{
+	dbpath="$1"
+	ownerUid="$2" 		#the wall owner
+	postUid="$3"		#the poster
+	postid="$4"
+	seePerm="$5" 		#ALL or NONE or id1;id2;...
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -z "$5" ]] || [[ -n "$6" ]] && return 255
+	[[ -d "$dbpath/ids/$ownerUid" ]] && [[ -d "$dbpath/ids/$postUid" ]] && [[ -f "$dbpath/posts/$ownerUid/$postUid/$postid/perm" ]] || return 4
+	[[ "$seePerm" == ALL ]] || [[ "$seePerm" == NONE ]] || for i in ` echo "$seePerm" | grep -Eo "[0-9]*" `; do [[ -d "$dbpath/ids/$i" ]] || return 4  ;done
+	sed -i "s/see=[[:print:]]*/see=$seePerm/" "$dbpath/posts/$ownerUid/$postUid/$postid/perm"
+	return 0
+}
+
+function addCmntPostPerm()
+{
+	dbpath="$1"
+	ownerUid="$2" 		#the wall owner
+	postUid="$3"		#the poster
+	postid="$4"
+	comntPerm="$5" 		#ALL or NONE or id1;id2;...
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -z "$5" ]] || [[ -n "$6" ]] && return 255
+	[[ -d "$dbpath/ids/$ownerUid" ]] && [[ -d "$dbpath/ids/$postUid" ]] && [[ -f "$dbpath/posts/$ownerUid/$postUid/$postid/perm" ]] || return 4
+	[[ "$comntPerm" == ALL ]] || [[ "$comntPerm" == NONE ]] || for i in ` echo "$comntPerm" | grep -Eo "[0-9]*" `; do [[ -d "$dbpath/ids/$i" ]] || return 4  ;done
+	sed -i "s/comment=[[:print:]]*/comment=$comntPerm/" "$dbpath/posts/$ownerUid/$postUid/$postid/perm"
+	return 0
+}
+function addBlkLstPostPerm()
+{
+	dbpath="$1"
+	ownerUid="$2" 		#the wall owner
+	postUid="$3"		#the poster
+	postid="$4"
+	blkLstPerm="$5" 		#ALL or NONE or id1;id2;...
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -z "$5" ]] || [[ -n "$6" ]] && return 255
+	[[ -d "$dbpath/posts/$ownerUid/$postUid/$postid" ]] && [[ -d "$dbpath/ids/$ownerUid" ]] && [[ -d "$dbpath/ids/$postUid" ]] && [[ -f "$dbpath/posts/$ownerUid/$postUid/$postid/perm" ]] || return 4
+	[[ "$blkLstPerm" == ALL ]] || [[ "$blkLstPerm" == NONE ]] || for i in ` echo "$blkLstPerm" | grep -Eo "[0-9]*" `; do [[ -d "$dbpath/ids/$i" ]] || return 4  ;done
+	sed -i "s/blackList=[[:print:]]*/blackList=$blkLstPerm/" "$dbpath/posts/$ownerUid/$postUid/$postid/perm"
+	return 0
+}
+

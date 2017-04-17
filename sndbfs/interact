@@ -1,0 +1,97 @@
+#! /bin/bash
+
+# This library has all the functions related to interacting with other users.
+
+function addFrnd()
+{
+
+	# Adds a friend by linking their ids to each others.
+
+	uid="$1"
+	targuid="$2"
+	dbpath="$3"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 255
+	[[ ! -d "$dbpath/ids/$uid" ]] && return 2
+	[[ ! -d "$dbpath/ids/$targuid" ]] && return 2
+
+        mkdir -p "$dbpath/ids/$uid/friends" "$dbpath/ids/$targuid/friends"
+	ln -s "$dbpath/ids/$targuid" "$dbpath/ids/$uid/friends/$targuid"
+	ln -s "$dbpath/ids/$uid" "$dbpath/ids/$targuid/friends/$uid"
+	return 0
+
+}
+function rmFrnd()
+{
+
+	# Removes a friend by removing the links.
+
+	uid="$1"
+	targuid="$2"
+        dbpath="$3"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 255
+        [[ ! -d "$dbpath/ids/$uid" ]] && return 2
+        [[ ! -d "$dbpath/ids/$targuid" ]] && return 2
+
+	[[ ! -e "$dbpath/ids/$uid/friends/$targuid" ]] || [[ ! -e "$dbpath/ids/$targuid/friends/$uid" ]] && return 13
+	rm -f "$dbpath/ids/$uid/friends/$targuid" "$dbpath/ids/$targuid/friends/$uid"
+	return 0
+
+}
+
+
+function add2Blist()
+{
+
+	# Adds a user to another user's black list.
+
+        uid="$1"
+        targuid="$2"
+        dbpath="$3"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 255
+        [[ ! -d "$dbpath/ids/$uid" ]] && return 2
+        [[ ! -d "$dbpath/ids/$targuid" ]] && return 2
+
+	mkdir -p "$dbpath/ids/$uid/blacklist"
+        ln -s "$dbpath/ids/$targuid" "$dbpath/ids/$uid/blacklist/$targuid"
+        return 0
+
+}
+
+function rmfrmBlist()
+{
+
+	# Removes users from each other's blacklists.
+
+        uid="$1"
+        targuid="$2"
+        dbpath="$3"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 255
+        [[ ! -d "$dbpath/ids/$uid" ]] && return 2
+        [[ ! -d "$dbpath/ids/$targuid" ]] && return 2
+
+        [[ ! -e "$dbpath/ids/$uid/blacklist/$targuid" ]] && return 14
+        rm -f "$dbpath/ids/$uid/blacklist/$targuid" "$dbpath/ids/$targuid/blacklist/$uid"
+        return 0
+
+}
+
+
+function sndMsg()
+{
+	uid="$1"
+	targuid="$2"
+	msg="$3"
+	confile="$4"
+        dbpath="$5"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -z "$5" ]] || [[ -n "$6" ]] && return 255
+        [[ ! -d "$dbpath/ids/$uid" ]] && return 2
+        [[ ! -d "$dbpath/ids/$targuid" ]] && return 2
+        maxchars=`cat $confile | grep maxCharactersInText | awk -F '=' '{print $2}' | tr -d '"'`
+	[[ `echo "$msg" | wc -m` -gt "$maxchars" ]] && return 5
+	nmsg="$uid;;`date`;$msg "
+	mkdir -p "$dbpath/messages/$uid" 2> /dev/null
+	[[ -e "$dbpath/messages/$uid/$targuid" ]] && echo "$nmsg" >> "$dbpath/messages/$uid/$targuid" || echo "$nmsg" > "$dbpath/messages/$uid/$targuid"
+	mkdir -p "$dbpath/messages/$targuid" 2> /dev/null
+	ln "$dbpath/messages/$uid/$targuid" "$dbpath/messages/$targuid/$uid" 2> /dev/null
+
+}

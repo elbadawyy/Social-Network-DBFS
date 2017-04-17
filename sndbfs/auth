@@ -1,0 +1,81 @@
+#! /bin/bash
+
+# This library has all the function related to user authentication (except the helper functions).
+
+function storUsr()
+{
+
+	# Stores the user's username and creates and stores userid in the database and returns the userid.
+
+	uname="$1"
+	dbpath="$2"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 255 #no conds
+	[[ -e "$dbpath/users/$uname" ]] && return 1
+
+	uid=$((`ls -1 "$dbpath/ids/" | wc -l`))
+
+	mkdir -p "$dbpath/ids/$uid" "$dbpath/users/$uname"
+	echo -en ";;uid=$uid;;uname=$uname;;" > "$dbpath/ids/$uid/$uid"
+	ln -s "$dbpath/ids/$uid/$uid" "$dbpath/users/$uname/$uname"
+	return 0
+
+}
+
+
+function setUpass()
+{
+
+	# Stores the encrypted password it in the user's database and if a password already existed, it changes the old password to the new one.
+
+	uid="$1"
+	pass="$2"
+	dbpath="$3"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 255
+	[[ ! -e "$dbpath/ids/$uid/$uid" ]] && return 2
+
+        if [[ ! -z `cat "$dbpath/ids/$uid/$uid" | grep password` ]]
+        then
+                sed -i "s/;;password=[[:print:]]*;;/;;password=$pass;;/" "$dbpath/ids/$uid/$uid"
+        else
+	        echo -en "password=$pass;;" >> "$dbpath/ids/$uid/$uid"
+        fi
+	return 0
+
+}
+function authUsr()
+{
+
+	# gives the user a session id and returns it, also stores session information.
+
+	uname="$1" #why not id
+	pass="$2"
+	brwsrhedr="$3"
+	proxy="$4"
+	ip="$5"
+	country="$6"
+	dbpath="$7"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -z "$5" ]] || [[ -z "$6" ]] || [[ -z "$7" ]] || [[ -n "$8" ]] && return 255
+        [[ ! -e "$dbpath/users/$uname/$uname" ]] && return 2
+
+	sessid=`echo "$1 $2 $3 $4 $5 $6" | md5sum | awk '{print $1}'`
+
+	echo -en "uname=$uname;;sessid=$sessid;;browserheader=$brwsrhedr;;proxy=$proxy;;ip=$ip;;country=$country" > "$dbpath/sessions/$sessid"
+	ln -s "$dbpath/sessions/$sessid" "$dbpath/users/$uname/$sessid"
+	echo "$sessid"
+	return 0
+
+}
+
+function deauthUsr()
+{
+
+	# Removes the user's session file.
+
+        sessid="$1"
+	dbpath="$2"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 255
+        [[ ! -e "$dbpath/sessions/$sessid" ]] && return 3
+
+        rm -f "$dbpath/sessions/$sessid" 2> /dev/null
+	return 0
+}

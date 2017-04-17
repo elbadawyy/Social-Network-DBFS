@@ -1,0 +1,269 @@
+#! /bin/bash
+
+function svTxtPst()
+{
+	#stores the text data from temporary directory to be used in posts,comments,...
+	dbpath="$1"
+	text="$2"
+	postid="$3"
+	confile="$4"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -n "$5" ]] && return 255
+	maxchars=`cat $confile | grep maxCharactersInText | awk -F '=' '{print $2}' | tr -d '"'`
+	[[ `echo "$text" | wc -m` -gt "$maxchars" ]] && return 5
+	mkdir -p "$dbpath/data/posts/text" 2> /dev/null
+	echo "$text" > "$dbpath/data/posts/text/$postid" 2> /dev/null
+	return 0
+	
+}
+
+function svImgPst()
+{
+	#stores the image data from temporary directory to be used in posts,comments,...
+	dbpath="$1"
+	imgpath="$2"
+	postid="$3"
+	confile="$4"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -n "$5" ]] && return 255
+	[[ -f "$imgpath" ]] || return 4 		#check if img exists
+	maxsize=`cat "$confile" | grep maxImageSizeByKiloBytes | awk -F '=' '{print $2}' | tr -d '"'`
+	[[ `du -k $imgpath | awk '{print $1}'` -gt $maxsize ]] && return 5 		#check img size
+	mkdir -p "$dbpath/data/posts/images" 2> /dev/null
+	mv -f "$imgpath" "$dbpath/data/posts/images/$postid" 2> /dev/null
+	return 0
+}
+
+function svVidPst()
+{
+	#stores the videos data from temporary directory to be used in posts,comments,...
+	dbpath="$1"
+	vidpath="$2"
+	postid="$3"
+	confile="$4"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -n "$5" ]] && return 255
+	[[ -f $vidpath ]] || return 4 		#check if vid exists
+	maxsize=`cat "$confile" | grep maxVideoSizeByKiloBytes | awk -F '=' '{print $2}' | tr -d '"'`
+	[[ `du -k $vidpath | awk '{print $1}'` -gt "$maxsize" ]] && return 5 		#check vid size
+	mkdir -p "$dbpath/data/posts/videos" 2> /dev/null
+	mv -f "$vidpath" "$dbpath/data/posts/videos/$postid" 2> /dev/null
+	return 0
+
+}
+
+function svTxtcomnt()
+{
+	#stores the text data to be used in posts,comments,...
+	
+	dbpath="$1"
+	text="$2"
+	comntid="$3"
+	confile="$4"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -n "$5" ]] && return 255
+	maxchars=`cat "$confile" | grep maxCharactersInText | awk -F '=' '{print $2}' | tr -d '"'`
+	[[ `echo "$text" | wc -m` -gt "$maxchars" ]] && return 5
+	mkdir -p "$dbpath/data/comments/text" 2> /dev/null
+	echo "$text" > "$dbpath/data/comments/text/$comntid" 2> /dev/null
+	return 0
+	
+}
+
+function svImgComnt()
+{
+	#stores the images data from temporary file to be used in posts,comments,...
+	dbpath="$1"
+	imgpath="$2"
+	comntid="$3"
+	confile="$4"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -n "$5" ]] && return 255
+	[[ -f $imgpath ]] || return 4 		#check if img exists
+	maxsize=`cat $confile | grep maxImageSizeByKiloBytes | awk -F '=' '{print $2}' | tr -d '"'`
+	[[ `du -k $imgpath | awk '{print $1}'` -gt $maxsize ]] && return 5 		#check img 
+	mkdir -p $dbpath/data/comments/images 2> /dev/null
+	mv -f $imgpath $dbpath/data/comments/images/$comntid 2> /dev/null
+	return 0
+}
+
+function mkTxtPst()
+{
+	
+	#take the text data which stored in data directory...
+	dbpath="$1"
+	ownerUid="$2" 		#the wall owner
+	postUid="$3"		#the poster
+	postid="$4"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -n "$5" ]] && return 255
+	[[ -f "$dbpath/data/posts/text/$postid" ]] && [[ -d "$dbpath/ids/$ownerUid"  ]] && [[ -d "$dbpath/ids/$postUid"  ]] ||  return 4
+	mkdir -p "$dbpath/posts/$ownerUid/$postUid/$postid" 2> /dev/null
+	ln -s "$dbpath/data/posts/text/$postid" "$dbpath/posts/$ownerUid/$postUid/$postid/txt" 2> /dev/null
+	return 0
+}
+
+function mkTxtImgPst()
+{
+	dbpath="$1"
+	ownerUid="$2" 		#the wall owner
+	postUid="$3"		#the poster
+	postid="$4"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -n "$5" ]] && return 255
+	[[ -f "$dbpath/data/posts/text/$postid" ]] && [[ -f "$dbpath/data/posts/images/$postid" ]] && [[ -d $dbpath/ids/$ownerUid  ]] && [[ -d $dbpath/ids/$postUid  ]] ||  return 4
+	mkdir -p "$dbpath/posts/$ownerUid/$postUid/$postid" 2> /dev/null
+	ln -s "$dbpath/data/posts/text/$postid" "$dbpath/posts/$ownerUid/$postUid/$postid/txt" 2> /dev/null
+	ln -s "$dbpath/data/posts/images/$postid" "$dbpath/posts/$ownerUid/$postUid/$postid/img" 2> /dev/null
+	return 0
+}
+
+function mkTxtVidPst()
+{
+	dbpath="$1"
+	ownerUid="$2" 		#the wall owner
+	postUid="$3"		#the poster
+	postid="$4"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -n "$5" ]] && return 255
+	[[ -f "$dbpath/data/posts/text/$postid" ]] && [[ -f "$dbpath/data/posts/videos/$postid" ]] && [[ -d "$dbpath/ids/$ownerUid" ]] && [[ -d "$dbpath/ids/$postUid"  ]] ||  return 4
+	mkdir -p "$dbpath/posts/$ownerUid/$postUid/$postid" 2> /dev/null
+	ln -s "$dbpath/data/posts/text/$postid" "$dbpath/posts/$ownerUid/$postUid/$postid/txt" 2> /dev/null
+	ln -s "$dbpath/data/posts/videos/$postid" "$dbpath/posts/$ownerUid/$postUid/$postid/vid" 2> /dev/null
+	return 0
+}
+
+function mkImgtPst()
+{
+	
+	dbpath="$1"
+	ownerUid="$2" 		#the wall owner
+	postUid="$3"		#the poster
+	postid="$4"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -n "$5" ]] && return 255
+	[[ -f "$dbpath/data/posts/images/$postid" ]] && [[ -d $dbpath/ids/$ownerUid  ]] && [[ -d $dbpath/ids/$postUid  ]] ||  return 4
+	mkdir -p "$dbpath/posts/$ownerUid/$postUid/$postid" 2> /dev/null
+	ln -s "$dbpath/data/posts/images/$postid" "$dbpath/posts/$ownerUid/$postUid/$postid/img" 2> /dev/null
+	return 0
+}
+
+function mkVidPst()
+{
+	
+	dbpath="$1"
+	ownerUid="$2" 		#the wall owner
+	postUid="$3"		#the poster
+	postid="$4"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -n "$5" ]] && return 255
+	[[ -f "$dbpath/data/posts/videos/$postid" ]] && [[ -d "$dbpath/ids/$ownerUid" ]] && [[ -d "$dbpath/ids/$postUid"  ]] ||  return 4
+	mkdir -p "$dbpath/posts/$ownerUid/$postUid/$postid" 2> /dev/null
+	ln -s "$dbpath/data/posts/videos/$postid" "$dbpath/posts/$ownerUid/$postUid/$postid/vid" 2> /dev/null
+	return 0
+}
+
+function mkTxtComnt()
+{
+	dbpath="$1"
+	ownerUid="$2"	#the post owner
+	postUid="$3"
+	comntUid="$4"	 #the commenter
+	postid="$5"
+	comntid="$6"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -z "$5" ]] || [[ -z "$6" ]] || [[ -n "$7" ]] && return 255
+	[[ -f "$dbpath/data/posts/text/$postid" ]] && [[ -f "$dbpath/data/comments/text/$comntid" ]] && [[ -d "$dbpath/ids/$ownerUid"  ]] && [[ -d "$dbpath/ids/$postUid" ]] && [[ -d "$dbpath/ids/$comntUid" ]] && [[ -d $dbpath/posts/$ownerUid/$postUid/$postid ]] ||  return 4
+	mkdir -p "$dbpath/posts/$ownerUid/$postUid/$postid/comments/$comntUid/$comntid" 2> /dev/null
+	ln -s "$dbpath/data/comments/text/$comntid" "$dbpath/posts/$ownerUid/$postUid/$postid/comments/$comntUid/$comntid/txt" 2> /dev/null
+	return 0
+}
+
+function mkTxtImgComnt()
+{
+	
+	dbpath="$1"
+	ownerUid="$2"	#the post owner
+	postUid="$3"
+	comntUid="$4"	 #the commenter
+	postid="$5"
+	comntid="$6"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -z "$5" ]] || [[ -z "$6" ]] || [[ -n "$7" ]] && return 255
+	[[ -f "$dbpath/data/comments/images/$comntid" ]] && [[ -f "$dbpath/data/posts/text/$postid" ]] && [[ -f "$dbpath/data/comments/text/$comntid" ]] && [[ -d "$dbpath/ids/$ownerUid"  ]] && [[ -d "$dbpath/ids/$postUid" ]] && [[ -d "$dbpath/ids/$comntUid" ]] && [[ -d $dbpath/posts/$ownerUid/$postUid/$postid ]] ||  return 4
+	mkdir -p "$dbpath/posts/$ownerUid/$postUid/$postid/comments/$comntUid/$comntid" 2> /dev/null
+	ln -s "$dbpath/data/comments/text/$comntid" "$dbpath/posts/$ownerUid/$postUid/$postid/comments/$comntUid/$comntid/txt" 2> /dev/null
+	ln -s "$dbpath/data/comments/images/$comntid" "$dbpath/posts/$ownerUid/$postUid/$postid/comments/$comntUid/$comntid/img" 2> /dev/null
+	return 0
+}
+
+function delPst()
+{
+	dbpath="$1"
+	ownerUid="$2"
+	postUid="$3"
+	postid="$4"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -n "$5" ]] && return 255
+	[[ -d "$dbpath/posts/$ownerUid/$postUid/$postid" ]] && [[ -d "$dbpath/ids/$ownerUid" ]] && [[ -d "$dbpath/ids/$postUid" ]] ||  return 4
+	rm -rf "$dbpath/posts/$ownerUid/$postUid/$postid" 2> /dev/null
+	return 0
+}
+
+function delComent()
+{
+	dbpath="$1"
+	ownerUid="$2"	#the post owner
+	postUid="$3"
+	comntUid="$4"	 #the commenter
+	postid="$5"
+	comntid="$6"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -z "$5" ]] || [[ -z "$6" ]] || [[ -n "$7" ]] && return 255
+	[[ -f "$dbpath/data/posts/text/$postid" ]] && [[ -f "$dbpath/data/comments/text/$comntid" ]] && [[ -d "$dbpath/ids/$postUid" ]] && [[ -d "$dbpath/ids/$comntUid" ]] && [[ -d "$dbpath/posts/$ownerUid/$postUid/$postid/comments/$comntUid/$comntid" ]] ||  return 4
+	rm -rf $dbpath/posts/$ownerUid/$postUid/$postid/comments/$comntUid/$comntid 2> /dev/null
+	return 0
+}
+function likPst()
+{
+	dbpath="$1"
+	ownerUid="$2"
+	postUid="$3" 		#the poster id
+	likUid="$4"
+	postid="$5"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -z "$5" ]] || [[ -n "$6" ]] && return 255
+	[[ -d "$dbpath/posts/$ownerUid/$postUid/$postid" ]] && [[ -d "$dbpath/ids/$ownerUid" ]] && [[ -d "$dbpath/ids/$postUid" ]] && [[ -d "$dbpath/ids/$likUid" ]] || return 4
+	mkdir -p "$dbpath/posts/$ownerUid/$postUid/$postid/likes" 2> /dev/null
+	ln -s "$dbpath/ids/$likUid" "$dbpath/posts/$ownerUid/$postUid/$postid/likes/$likUid" 2> /dev/null
+	return 0
+}
+
+function unlikPst()
+{
+	dbpath="$1"
+	ownerUid="$2"
+	postUid="$3" 		#the poster id
+	likUid="$4"
+	postid="$5"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -z "$5" ]] || [[ -n "$6" ]] && return 255
+	[[ -d "$dbpath/posts/$ownerUid/$postUid/$postid/likes/$likUid" ]] && [[ -d "$dbpath/posts/$ownerUid/$postUid/$postid" ]] && [[ -d "$dbpath/ids/$ownerUid" ]] && [[ -d "$dbpath/ids/$postUid" ]] && [[ -d "$dbpath/ids/$likUid" ]] || return 4
+	rm -rf "$dbpath/posts/$ownerUid/$postUid/$postid/likes/$likUid" 2> /dev/null
+	return 0
+}
+
+function likcomnt()
+{
+	dbpath="$1" 
+	postUid="$2"		#the poster id
+	ownerUid="$3"		#the wall owner
+	comntUid="$4"		#the commenter id
+	likComntUid="$5"	#the comment liker id
+	postid="$6"		#the post id
+	comntid="$7"		#the comment id
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]]|| [[ -z "$5" ]] || [[ -z "$6" ]] || [[ -z "$7" ]] || [[ -n "$8" ]] && return 255
+	[[ -d "$dbpath/posts/$ownerUid/$postUid/$postid/comments/$comntUid/$comntid" ]] && [[ -d "$dbpath/ids/$ownerUid" ]] && [[ -d "$dbpath/ids/$postUid" ]] && [[ -d "$dbpath/ids/$likComntUid" ]] ||  return 4
+	mkdir -p "$dbpath/posts/$ownerUid/$postUid/$postid/comments/$comntUid/$comntid/likes" 2> /dev/null
+	ln -s "$dbpath/ids/$likComntUid" "$dbpath/posts/$ownerUid/$postUid/$postid/comments/$comntUid/$comntid/likes/$likComntUid" 2> /dev/null
+	return 0
+}
+
+function unlikcomnt()
+{
+	dbpath="$1" 
+	postUid="$2"		#the poster id
+	ownerUid="$3"		#the wall owner
+	comntUid="$4"		#the commenter id
+	likComntUid="$5"	#the comment liker id
+	postid="$6"		#the post id
+	comntid="$7"		#the comment id
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]]|| [[ -z "$5" ]] || [[ -z "$6" ]] || [[ -z "$7" ]] || [[ -n "$8" ]] && return 255
+	[[ -d "$dbpath/posts/$ownerUid/$postUid/$postid/comments/$comntUid/$comntid/likes/$likComntUid" ]] && [[ -d "$dbpath/posts/$ownerUid/$postUid/$postid/comments/$comntUid/$comntid" ]] && [[ -d "$dbpath/ids/$ownerUid" ]] && [[ -d "$dbpath/ids/$postUid" ]] && [[ -d "$dbpath/ids/$likComntUid" ]] ||  return 4
+	rm -rf "$dbpath/posts/$ownerUid/$postUid/$postid/comments/$comntUid/$comntid/likes/$likComntUid" 2> /dev/null
+	return 0
+}

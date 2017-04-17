@@ -1,0 +1,13 @@
+#! /bin/bash
+
+# This is a simple starter engine that creates the initial directories hierarchy.
+
+dbpath="$1"
+
+[[ -z "$1" ]] || [[ -n "$2" ]] && exit 225
+[[ ! -d "$dbpath" ]] && exit 4
+
+mkdir -p "$dbpath/ids" "$dbpath/users" "$dbpath/sessions" "$dbpath/logs" "$dbpath/birthdates" "$dbpath/firstnames" "$dbpath/lastnames" "$dbpath/genders" "$dbpath/relations" "$dbpath/religions" "$dbpath/emails" "$dbpath/ranks" 2> /dev/null
+
+exit 0
+

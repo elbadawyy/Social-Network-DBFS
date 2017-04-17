@@ -1,0 +1,247 @@
+#! /bin/bash
+
+# This library has all the functions related to dealing with user's personal information.
+
+function setBdate()
+{
+
+	# Sets or changes the user's date of birth.
+
+	uid="$1"
+	dob="$2"
+	mob="$3"
+	yob="$4"
+	dbpath="$5"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$4" ]] || [[ -z "$5" ]] || [[ -n "$6" ]] && return 255
+	[[ ! -e "$dbpath/ids/$uid/$uid" ]] && return 2
+
+        mkdir -p "$dbpath/birthdates/$yob/$mob/$dob" 2>/dev/null
+        if [[ ! -z `cat "$dbpath/ids/$uid/$uid" 2>/dev/null | grep birthdate` ]]
+        then
+                olddob=`cat "$dbpath/ids/$uid/$uid" 2>/dev/null | awk -F 'birthdate=' '{print $2}' | awk -F ';;' '{print $1}' | awk -F ',' '{print $1}'`
+		oldmob=`cat "$dbpath/ids/$uid/$uid" 2>/dev/null | awk -F 'birthdate=' '{print $2}' | awk -F ';;' '{print $1}' | awk -F ',' '{print $2}'`
+		oldyob=`cat "$dbpath/ids/$uid/$uid" 2>/dev/null | awk -F 'birthdate=' '{print $2}' | awk -F ';;' '{print $1}' | awk -F ',' '{print $3}'`
+                rm -f "$dbpath/birthdates/$oldyob/$oldmob/$olddob/$uid" 2>/dev/null
+                sed -i "s/;;birthdate=$olddob,$oldmob,$oldyob;;/;;birthdate=$dob,$mob,$yob;;/" "$dbpath/ids/$uid/$uid"
+        else
+                sed -i "s/$/birthdate=$dob,$mob,$yob;;/" "$dbpath/ids/$uid/$uid"
+        fi
+        ln -s "$dbpath/ids/$uid" "$dbpath/birthdates/$yob/$mob/$dob/$uid" 2>/dev/null
+	return 0
+
+}
+
+function setFname()
+{
+
+	# Sets or changes the user's first name.
+
+        uid="$1"
+        fname="$2"
+	dbpath="$3"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 255
+	[[ ! -e "$dbpath/ids/$uid/$uid" ]] && return 2
+
+        mkdir -p "$dbpath/firstnames/$fname" 2>/dev/null
+        if [[ ! -z `cat "$dbpath/ids/$uid/$uid" 2>/dev/null | grep firstname` ]]
+        then
+                oldfname=`cat "$dbpath/ids/$uid/$uid" 2>/dev/null | awk -F 'firstname=' '{print $2}' | awk -F ';;' '{print $1}'`
+                rm -f "$dbpath/firstnames/$oldfname/$uid" 2>/dev/null
+                sed -i "s/;;firstname=$oldfname;;/;;firstname=$fname;;/" "$dbpath/ids/$uid/$uid"
+        else
+		sed -i "s/$/firstname=$fname;;/" "$dbpath/ids/$uid/$uid"
+        fi
+        ln -s "$dbpath/ids/$uid" "$dbpath/firstnames/$fname/$uid"
+	return 0
+
+}
+
+function setLname()
+{
+
+        # Sets or changes the user's last name.
+
+        uid="$1"
+        lname="$2"
+        dbpath="$3"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 255
+        [[ ! -e "$dbpath/ids/$uid/$uid" ]] && return 2
+
+        mkdir -p "$dbpath/lastnames/$lname" 2>/dev/null
+        if [[ ! -z `cat "$dbpath/ids/$uid/$uid" 2>/dev/null | grep lastname` ]]
+        then
+                oldlname=`cat "$dbpath/ids/$uid/$uid" 2>/dev/null | awk -F 'lastname=' '{print $2}' | awk -F ';;' '{print $1}'`
+                rm -f "$dbpath/lastnames/$oldlname/$uid" 2>/dev/null
+                sed -i "s/;;lastname=$oldlname;;/;;lastname=$lname;;/" "$dbpath/ids/$uid/$uid"
+        else
+                sed -i "s/$/lastname=$lname;;/" "$dbpath/ids/$uid/$uid"
+        fi
+        ln -s "$dbpath/ids/$uid" "$dbpath/lastnames/$lname/$uid"
+        return 0
+
+}
+function setGender()
+{
+
+	# Sets or changes the user's gender.
+
+	uid="$1"
+	dbpath="$2"
+	gender="$3"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 255
+	[[ ! -e "$dbpath/ids/$uid/$uid" ]] && return 2
+
+        mkdir -p "$dbpath/genders/$gender" 2>/dev/null
+        if [[ ! -z `cat "$dbpath/ids/$uid/$uid" 2>/dev/null | grep gender` ]]
+        then
+                oldgender=`cat "$dbpath/ids/$uid/$uid" 2>/dev/null | awk -F 'gender=' '{print $2}' | awk -F ';;' '{print $1}'`
+                rm -f "$dbpath/genders/$oldgender/$uid" 2>/dev/null
+                sed -i "s/;;gender=$oldgender;;/;;gender=$gender;;/" "$dbpath/ids/$uid/$uid"
+        else
+               sed -i "s/$/gender=$gender;;/" "$dbpath/ids/$uid/$uid"
+        fi
+        ln -s "$dbpath/ids/$uid" "$dbpath/genders/$gender/$uid"
+	return 0
+
+}
+
+function setRlation()
+{
+
+	# Sets or changes the user's relationship status.
+
+        uid="$1"
+        dbpath="$2"
+        rlation="$3"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 255
+        [[ ! -e "$dbpath/ids/$uid/$uid" ]] && return 2
+
+        mkdir -p "$dbpath/relations/$rlation" 2>/dev/null
+        if [[ ! -z `cat "$dbpath/ids/$uid/$uid" 2>/dev/null | grep relation` ]]
+        then
+                oldrlation=`cat "$dbpath/ids/$uid/$uid" 2>/dev/null | awk -F 'relation=' '{print $2}' | awk -F ';;' '{print $1}'`
+                rm -f "$dbpath/relations/$oldrlation/$uid" 2>/dev/null
+                sed -i "s/;;relation=$oldrlation;;/;;relation=$rlation;;/" "$dbpath/ids/$uid/$uid"
+        else
+                sed -i "s/$/relation=$rlation;;/" "$dbpath/ids/$uid/$uid"
+        fi
+        ln -s "$dbpath/ids/$uid" "$dbpath/relations/$rlation/$uid"
+	return 0
+
+}
+
+function setRlgion()
+{
+
+        # Sets or changes the user's religion.
+
+        uid="$1"
+        dbpath="$2"
+        rlgion="$3"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 255
+        [[ ! -e "$dbpath/ids/$uid/$uid" ]] && return 2
+
+        mkdir -p "$dbpath/religions/$rlgion" 2>/dev/null
+        if [[ ! -z `cat "$dbpath/ids/$uid/$uid" 2>/dev/null | grep religion` ]]
+        then
+                oldrlgion=`cat "$dbpath/ids/$uid/$uid" 2>/dev/null | awk -F 'religion=' '{print $2}' | awk -F ';;' '{print $1}'`
+                rm -f "$dbpath/religions/$oldrlgion/$uid" 2>/dev/null
+                sed -i "s/;;religion=$oldrlgion;;/;;religion=$rlgion;;/" "$dbpath/ids/$uid/$uid"
+        else
+                sed -i "s/$/religion=$rlgion;;/" "$dbpath/ids/$uid/$uid"
+        fi
+        ln -s "$dbpath/ids/$uid" "$dbpath/religions/$rlgion/$uid"
+	return 0
+
+}
+function addMail()
+{
+
+        # Adds a user's E-mail.
+
+	uid="$1"
+        dbpath="$2"
+        mail="$3"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 255
+        [[ ! -e "$dbpath/ids/$uid/$uid" ]] && return 2
+
+	domain=`echo "$mail" | awk -F '@' '{print $2}'`
+        mkdir -p "$dbpath/emails/$domain" 2>/dev/null
+        if [[ ! -z `cat "$dbpath/ids/$uid/$uid" 2>/dev/null | grep mail` ]]
+        then
+                oldmails=`cat "$dbpath/ids/$uid/$uid" 2>/dev/null | awk -F 'mail=' '{print $2}' | awk -F ';;' '{print $1}'`
+                sed -i "s/;;mail=$oldmails;;/;;mail=$oldmails,$mail,;;/" "$dbpath/ids/$uid/$uid"
+        else
+                sed -i "s/$/mail=,$mail,;;/" "$dbpath/ids/$uid/$uid"
+        fi
+        ln -s "$dbpath/ids/$uid" "$dbpath/emails/$domians/$mail"
+	return 0
+
+}
+function rmMail()
+{
+
+	# Removes a user's E-mail.
+
+	uid="$1"
+	dbpath="$2"
+	mail="$3"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 255
+        [[ ! -e "$dbpath/ids/$uid/$uid" ]] && return 2
+
+	[[ -z `cat "$dbpath/ids/$uid/$uid" 2>/dev/null | grep "$mail"` ]] && return 11
+	sed -i "s/,$mail,/,/" "$dbpath/ids/$uid/$uid"
+	rm -f "$dbpath/emails/$domians/$mail"
+	return 0
+}
+
+function setRank()
+{
+
+	# Sets or changes the user's rank.
+
+        uid="$1"
+        dbpath="$2"
+        rank="$3"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 255
+        [[ ! -e "$dbpath/ids/$uid/$uid" ]] && return 2
+
+        mkdir -p "$dbpath/ranks/$rank" 2>/dev/null
+        if [[ ! -z `cat "$dbpath/ids/$uid/$uid" 2>/dev/null | grep rank` ]]
+        then
+                oldrank=`cat "$dbpath/ids/$uid/$uid" 2>/dev/null | awk -F 'rank=' '{print $2}' | awk -F ';;' '{print $1}'`
+                rm -f "$dbpath/ranks/$oldrank/$uid" 2>/dev/null
+                sed -i "s/;;rank=[[:print:]]*;;/;;rank=$rank;;/" "$dbpath/ids/$uid/$uid"
+        else
+                sed -i "s/$/rank=$rank;;/" "$dbpath/ids/$uid/$uid"
+        fi
+        ln -s "$dbpath/ids/$uid" "$dbpath/ranks/$rank/$uid"
+	return 0
+
+}
+
+
+function setAvatar()
+{
+
+        # Sets or changes the user's avatar.
+
+        uid="$1"
+        dbpath="$2"
+        picpath="$3"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 255
+        [[ -d "$dbpath/ids/$uid" ]] || return 2
+	[[ -f "$picpath" ]] || return 4
+
+	mkdir -p "$dbpath/avatars/$uid"
+        if [[ -n `cat "$dbpath/ids/$uid/$uid" 2>/dev/null | grep avatar` ]]
+        then
+		sed -i "s/;;avatar=[[:print:]]*;;/;;/" "$dbpath/ids/$uid/$uid" 2> /dev/null
+		echo -en "avatar=$picpath;;" >> "$dbpath/ids/$uid/$uid" 2> /dev/null
+        else
+		echo -en "avatar=$picpath;;" >> "$dbpath/ids/$uid/$uid" 2> /dev/null
+        fi
+        ln -s "$picpath" "$dbpath/avatars/$uid/`basename $picpath`" 2> /dev/null
+        return 0
+
+}

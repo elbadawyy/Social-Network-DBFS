@@ -1,0 +1,258 @@
+#! /bin/bash
+
+# This library is responsible for all retrieval operations done on user's data.
+
+function getBdate()
+{
+
+	# Retrieve a user's birthdate.
+
+	uid="$1"
+	dbpath="$2"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 255
+
+	[[ -z `cat "$dbpath/ids/$uid/$uid" | grep birthdate` ]] && return 11
+	cat "$dbpath/ids/$uid/$uid" | awk -F 'birthdate=' '{print $2}' | awk -F ';;' '{print $1}'
+	return 0
+
+}
+
+function getRlgion()
+{
+
+        # Retrieve a user's religion.
+
+        uid="$1"
+        dbpath="$2"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 255
+
+        [[ -z `cat "$dbpath/ids/$uid/$uid" | grep religion` ]] && return 11
+        cat "$dbpath/ids/$uid/$uid" | awk -F 'religion=' '{print $2}' | awk -F ';;' '{print $1}'
+        return 0
+
+}
+
+function getRlation()
+{
+
+        # Retrieve a user's relationship status.
+
+        uid="$1"
+        dbpath="$2"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 255
+
+        [[ -z `cat "$dbpath/ids/$uid/$uid" | grep relation` ]] && return 11
+        cat "$dbpath/ids/$uid/$uid" | awk -F 'relation=' '{print $2}' | awk -F ';;' '{print $1}'
+        return 0
+
+}
+
+function getGender()
+{
+
+        # Retrieve a user's gender.
+
+        uid="$1"
+        dbpath="$2"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 255
+
+        [[ -z `cat "$dbpath/ids/$uid/$uid" | grep gender` ]] && return 11
+        cat "$dbpath/ids/$uid/$uid" | awk -F 'gender=' '{print $2}' | awk -F ';;' '{print $1}'
+        return 0
+
+}
+
+function getFname()
+{
+
+        # Retrieve a user's first name.
+
+        uid="$1"
+        dbpath="$2"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 255
+
+        [[ -z `cat "$dbpath/ids/$uid/$uid" | grep firstname` ]] && return 11
+        cat "$dbpath/ids/$uid/$uid" | awk -F 'firstname=' '{print $2}' | awk -F ';;' '{print $1}'
+        return 0
+
+}
+
+function getLname()
+{
+
+        # Retrieve a user's last name.
+
+        uid="$1"
+        dbpath="$2"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 255
+
+        [[ -z `cat "$dbpath/ids/$uid/$uid" | grep lastname` ]] && return 11
+        cat "$dbpath/ids/$uid/$uid" | awk -F 'lastname=' '{print $2}' | awk -F ';;' '{print $1}'
+        return 0
+
+}
+
+function getMails()
+{
+
+        # Retrieve a user's E-mail accounts.
+
+        uid="$1"
+        dbpath="$2"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 255
+
+        [[ -z `cat "$dbpath/ids/$uid/$uid" | grep mail` ]] && return 11
+        cat "$dbpath/ids/$uid/$uid" | awk -F 'mail=' '{print $2}' | awk -F ';;' '{print $1}'
+        return 0
+
+}
+
+function getRank()
+{
+
+        # Retrieve a user's rank.
+
+        uid="$1"
+        dbpath="$2"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 255
+
+        [[ -z `cat "$dbpath/ids/$uid/$uid" | grep rank` ]] && return 11
+        cat "$dbpath/ids/$uid/$uid" | awk -F 'rank=' '{print $2}' | awk -F ';;' '{print $1}'
+        return 0
+
+}
+
+function getAvatar()
+{
+
+        # Retrieve a user's avatar.
+
+        uid="$1"
+        dbpath="$2"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 255
+
+        [[ -z `cat "$dbpath/ids/$uid/$uid" | grep avatar` ]] && return 11
+        cat "$dbpath/ids/$uid/$uid" | awk -F 'avatar=' '{print $2}' | awk -F ';;' '{print $1}'
+        return 0
+
+}
+
+function getBlist()
+{
+
+        # Returns a user's blacklist.
+
+        uid="$1"
+        dbpath="$2"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 255
+        [[ ! -d "$dbpath/ids/$uid" ]] && return 2
+
+        [[ ! -d "$dbpath/ids/$uid/blacklist" ]] && return 12
+        ls "$dbpath/ids/$uid/blacklist"
+        return 0
+
+}
+
+
+function listFrnds()
+{
+
+        # Returns a list of a user's friends.
+
+        uid="$1"
+        dbpath="$2"
+        [[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 255
+        [[ ! -d "$dbpath/ids/$uid" ]] && return 2
+
+        [[ ! -d "$dbpath/ids/$uid/friends" ]] && return 12
+        ls "$dbpath/ids/$uid/friends"
+        return 0
+
+}
+function getTxtPst()
+{
+	dbpath="$1"
+	ownerUid="$2" 		#the wall owner
+	postUid="$3"		#the poster
+	postid="$4"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -n "$5" ]] && return 255
+	[[ -f "$dbpath/data/posts/text/$postid" ]] && [[ -d "$dbpath/ids/$ownerUid"  ]] && [[ -d "$dbpath/ids/$postUid"  ]] ||  return 4
+	mkdir -p "$dbpath/posts/$ownerUid/$postUid/$postid" 2> /dev/null
+	cat "$dbpath/posts/$ownerUid/$postUid/$postid/txt" 2> /dev/null
+	return 0
+
+}
+
+function getNotf()
+{
+	dbpath="$1"
+	uid="$2"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 225
+	[[ -f "$dbpath/ids/$uid/notifications" ]] && [[ -d "$dbpath/ids/$uid" ]] || return 4
+	cat "$dbpath/ids/$uid/notifications"
+	return 0
+}
+
+function getPstSeePerm()
+{
+	dbpath="$1"
+	ownerUid="$2" 		#the wall owner
+	postUid="$3"		#the poster
+	postid="$4"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -n "$5" ]] && return 255
+	[[ -f "$dbpath/posts/$ownerUid/$postUid/$postid/perm" ]] && [[ -d "$dbpath/ids/$ownerUid" ]] && [[ -d "$dbpath/ids/$postUid" ]] || return 4
+	cat "$dbpath/posts/$ownerUid/$postUid/$postid/perm" | grep "see=" | awk -F '=' '{print $2}'
+	return 0 
+}
+function getPstCmntPerm()
+{
+	dbpath="$1"
+	ownerUid="$2" 		#the wall owner
+	postUid="$3"		#the poster
+	postid="$4"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -n "$5" ]] && return 255
+	[[ -f "$dbpath/posts/$ownerUid/$postUid/$postid/perm" ]] && [[ -d "$dbpath/ids/$ownerUid" ]] && [[ -d "$dbpath/ids/$postUid" ]] || return 4
+	cat "$dbpath/posts/$ownerUid/$postUid/$postid/perm" | grep "comment=" | awk -F '=' '{print $2}'
+	return 0 
+}
+function getPstBlkLstPerm()
+{
+	dbpath="$1"
+	ownerUid="$2" 		#the wall owner
+	postUid="$3"		#the poster
+	postid="$4"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -z "$4" ]] || [[ -n "$5" ]] && return 255
+	[[ -f "$dbpath/posts/$ownerUid/$postUid/$postid/perm" ]] && [[ -d "$dbpath/ids/$ownerUid" ]] && [[ -d "$dbpath/ids/$postUid" ]] || return 4
+	cat "$dbpath/posts/$ownerUid/$postUid/$postid/perm" | grep "blackList=" | awk -F '=' '{print $2}'
+	return 0 
+}
+function getAccSndMsgPerm()
+{
+	dbpath="$1"
+	uid="$2"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 4
+	[[ -d "$dbpath/ids/$uid" ]] && [[ -f "$dbpath/ids/$uid/perm" ]] || return 4
+	cat "$dbpath/ids/$uid/perm" | grep "messagePermission=" | awk -F '=' '{print $2}'
+	return 0
+
+}
+function getAccAddFrndPerm()
+{
+	dbpath="$1"
+	uid="$2"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 4
+	[[ -d "$dbpath/ids/$uid" ]] && [[ -f "$dbpath/ids/$uid/perm" ]] || return 4
+	cat "$dbpath/ids/$uid/perm" | grep "addFriendPermission=" | awk -F '=' '{print $2}'
+	return 0
+
+}
+function getAccSrchEngnPerm()
+{
+	dbpath="$1"
+	uid="$2"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 4
+	[[ -d "$dbpath/ids/$uid" ]] && [[ -f "$dbpath/ids/$uid/perm" ]] || return 4
+	cat "$dbpath/ids/$uid/perm" | grep "searchEnginePermission=" | awk -F '=' '{print $2}'
+	return 0
+
+}

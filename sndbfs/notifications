@@ -1,0 +1,52 @@
+#! /bin/bash
+gnrtNotFile()
+{
+	dbpath="$1"
+	uid="$2"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -n "$3" ]] && return 225
+	[[ -d "$dbpath/ids/$uid" ]] || return 4
+	touch "$dbpath/ids/$uid/notifications"
+	uname=`cat "$dbpath/ids/$uid/$uid" 2> /dev/null | awk -F 'uname=' '{print $2}' | awk -F ';;' '{print $1}'`
+	echo "You just signed ,HI $uname" > "$dbpath/ids/$uid/notifications"
+	return 0
+}
+addFrndNot()
+{
+	dbpath="$1"
+	uid="$2"
+	usrName="$3"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 225
+	[[ -d "$dbpath/ids/$uid" ]] && [[ -d "$dbpath/users/$usrName" ]] || return 4
+	sed -i "1s/^/$usrName has been added to your friends\n/" "$dbpath/ids/$uid/notifications"
+	return 0
+}
+likePostNot()
+{
+	dbpath="$1"
+	uid="$2"
+	usrName="$3"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 225
+	[[ -d "$dbpath/ids/$uid" ]] && [[ -d "$dbpath/users/$usrName" ]] || return 4
+	sed -i "1s/^/$usrName has been liked your post\n/" "$dbpath/ids/$uid/notifications"
+	return 0
+}
+comntPostNot()
+{
+	dbpath="$1"
+	uid="$2"
+	usrName="$3"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 225
+	[[ -d "$dbpath"/ids/"$uid" ]] && [[ -d "$dbpath"/users/"$usrName" ]] || return 4
+	sed -i "1s/^/$usrName has been commented on your post\n/" "$dbpath/ids/$uid/notifications"
+	return 0
+}
+likecomntNot()
+{
+	dbpath="$1"
+	uid="$2"
+	usrName="$3"
+	[[ -z "$1" ]] || [[ -z "$2" ]] || [[ -z "$3" ]] || [[ -n "$4" ]] && return 225
+	[[ -d "$dbpath/ids/$uid" ]] && [[ -d "$dbpath"/users/"$usrName" ]] || return 4
+	sed -i "1s/^/$usrName has been liked your comment\n/" "$dbpath/ids/$uid/notifications"
+	return 0
+}
